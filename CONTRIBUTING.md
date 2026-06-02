@@ -1,5 +1,7 @@
 # 贡献指南
 
+UPDATED
+
 感谢你帮助改进 Claude Code Haha。
 
 完整贡献指南包含本地检查、真实模型 baseline、质量门禁报告和 PR 要求：
