@@ -1,4 +1,4 @@
-# Claude Code IM Adapters (UPDATED By Flyer)
+# Claude Code IM Adapters (UPDATED 6/8 By Flyer)
 当前目录只放 IM Adapter 运行时代码。
 
 用户文档已经迁移到 `docs/`，并且以 Desktop Webapp 配置流程为准：
