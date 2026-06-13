@@ -1,2 +1,261 @@
-# Untitled
-
+{
+	"title": "cc-haha",
+	"$schema": "[https://jolli.app/schemas/site-config.json](https://jolli.app/schemas/site-config.json)",
+	"description": "Powerup your Data Lake with Incremental View Maintenance",
+	"header": {
+		"items": [
+			{ "label": "Console", "url": "[https://try.feldera.com](https://try.feldera.com)" },
+			{ "label": "GitHub", "url": "[https://github.com/feldera/feldera](https://github.com/feldera/feldera)" }  
+		]  
+	},  
+	"theme": {  
+		"pack": "forge",  
+		"logoText": "cc-haha",  
+		"logoDisplay": "image",  
+		"primaryColor": "#C02BEE",  
+		"defaultTheme": "light",  
+		"fontFamily": "inter"  
+	},  
+	"agent": [  
+		{  
+			"page": "Home",  
+			"root": "/",  
+			"content": [  
+				{ "article": "What is Feldera?", "href": "/index" }  
+			]  
+		},  
+		{  
+			"page": "Get Started",  
+			"root": "/get-started",  
+			"content": [  
+				{ "article": "Install Feldera", "href": "index" },  
+				{ "article": "Docker", "href": "docker" },  
+				{ "article": "Feldera Sandbox", "href": "sandbox" },  
+				{  
+					"article": "Feldera Enterprise",  
+					"href": "enterprise",  
+					"articles": [  
+						{ "article": "Quickstart", "href": "enterprise/quickstart" },  
+						{ "article": "Helm guide", "href": "enterprise/helm-guide" },  
+						{  
+							"article": "Kubernetes guides",  
+							"href": "enterprise/kubernetes-guides",  
+							"articles": [  
+								{ "article": "K3D cluster", "href": "enterprise/kubernetes-guides/k3d" },  
+								{ "article": "EKS", "href": "enterprise/kubernetes-guides/eks" }  
+							]  
+						},  
+						{ "article": "Authentication", "href": "enterprise/authentication" },  
+						{ "article": "HTTPS", "href": "enterprise/https" },  
+						{ "article": "Parallel Compilation", "href": "enterprise/parallel-compilation" }  
+					]  
+				}  
+			]  
+		},  
+		{  
+			"page": "Tutorials",  
+			"root": "/tutorials",  
+			"content": [  
+				{ "article": "Overview", "href": "index" },  
+				{  
+					"article": "Feldera Basics",  
+					"href": "basics",  
+					"articles": [  
+						{ "article": "Part 1", "href": "basics/part1" },  
+						{ "article": "Part 2", "href": "basics/part2" },  
+						{ "article": "Part 3", "href": "basics/part3" },  
+						{ "article": "Part 4", "href": "basics/part4" }  
+					]  
+				}  
+			]  
+		},  
+		{  
+			"page": "Use Cases",  
+			"root": "/use_cases",  
+			"content": [  
+				{  
+					"article": "Accelerating Batch Analytics",  
+					"href": "batch",  
+					"articles": [  
+						{ "article": "Part 1", "href": "batch/part1" },  
+						{ "article": "Part 2 — Convert to a Pipeline", "href": "batch/part2" },  
+						{ "article": "Part 3 — Historical + Real Time", "href": "batch/part3" },  
+						{ "article": "Part 4 — Multiple Destinations", "href": "batch/part4" }  
+					]  
+				},  
+				{  
+					"article": "Real-time Web Applications",  
+					"href": "real_time_apps/part1",  
+					"articles": [  
+						{ "article": "Part 2 — Many Clients", "href": "real_time_apps/part2" },  
+						{ "article": "Part 3 — Browser UI", "href": "real_time_apps/part3" }  
+					]  
+				},  
+				{  
+					"article": "Fine-Grained Authorization",  
+					"href": "fine_grained_authorization",  
+					"articles": [  
+						{ "article": "Static FGA model", "href": "fine_grained_authorization/static" },  
+						{ "article": "Dynamic FGA model", "href": "fine_grained_authorization/dynamic" }  
+					]  
+				},  
+				{  
+					"article": "OpenTelemetry Analysis",  
+					"href": "otel",  
+					"articles": [  
+						{ "article": "Representing OTel Data", "href": "otel/representing_otel_data" },  
+						{ "article": "Sending OTel Data", "href": "otel/preprocessing" },  
+						{ "article": "High-Level Metrics", "href": "otel/insights" },  
+						{ "article": "Grafana Integration", "href": "otel/grafana" }  
+					]  
+				}  
+			]  
+		},  
+		{  
+			"page": "Interface",  
+			"root": "/interface",  
+			"content": [  
+				{ "article": "Feldera Interface", "href": "index" },  
+				{ "article": "Web Console", "href": "web-console" },  
+				{ "article": "Command line tool (fda)", "href": "cli" }  
+			]  
+		},  
+		{  
+			"page": "Connectors",  
+			"root": "/connectors",  
+			"content": [  
+				{ "article": "Connectors", "href": "index" },  
+				{ "article": "Uniqueness Constraints", "href": "unique_keys" },  
+				{ "article": "Input orchestration", "href": "orchestration" },  
+				{ "article": "Completion Tokens", "href": "completion-tokens" },  
+				{ "article": "Secret references", "href": "secret-references" },  
+				{  
+					"article": "Input (Sources)",  
+					"href": "sources",  
+					"articles": [  
+						{ "article": "HTTP", "href": "sources/http" },  
+						{ "article": "HTTP GET (URL)", "href": "sources/http-get" },  
+						{ "article": "Delta Lake", "href": "sources/delta" },  
+						{ "article": "Apache Iceberg", "href": "sources/iceberg" },  
+						{ "article": "Kafka", "href": "sources/kafka" },  
+						{ "article": "Google Pub/Sub", "href": "sources/pubsub" },  
+						{ "article": "NATS", "href": "sources/nats" },  
+						{ "article": "Debezium", "href": "sources/debezium" },  
+						{ "article": "PostgreSQL", "href": "sources/postgresql" },  
+						{ "article": "AWS S3", "href": "sources/s3" },  
+						{ "article": "Data Generator", "href": "sources/datagen" },  
+						{ "article": "File", "href": "sources/file" }  
+					]  
+				},  
+				{  
+					"article": "Output (Sinks)",  
+					"href": "sinks",  
+					"articles": [  
+						{ "article": "HTTP", "href": "sinks/http" },  
+						{ "article": "Delta Lake", "href": "sinks/delta" },  
+						{ "article": "Kafka", "href": "sinks/kafka" },  
+						{ "article": "Confluent JDBC", "href": "sinks/confluent-jdbc" },  
+						{ "article": "Redis", "href": "sinks/redis" },  
+						{ "article": "PostgreSQL", "href": "sinks/postgresql" },  
+						{ "article": "Snowflake (experimental)", "href": "sinks/snowflake" },  
+						{ "article": "File", "href": "sinks/file" },  
+						{ "article": "Iceberg (experimental)", "href": "sinks/iceberg" }  
+					]  
+				}  
+			]  
+		},  
+		{  
+			"page": "Pipelines",  
+			"root": "/pipelines",  
+			"content": [  
+				{ "article": "Pipelines", "href": "index" },  
+				{ "article": "Pipeline Lifecycle", "href": "lifecycle" },  
+				{ "article": "Settings", "href": "configuration" },  
+				{ "article": "Modifying a Pipeline", "href": "modifying" },  
+				{ "article": "Bulk Data via Transactions", "href": "transactions" },  
+				{ "article": "Measuring Latency", "href": "latency" },  
+				{ "article": "Sidecar Containers", "href": "sidecar" },  
+				{  
+					"group": "Fault Tolerance",  
+					"content": [  
+						{ "article": "Checkpoints", "href": "fault-tolerance" },  
+						{ "article": "Checkpoint Sync", "href": "checkpoint-sync" }  
+					]  
+				}  
+			]  
+		},  
+		{  
+			"page": "Formats",  
+			"root": "/formats",  
+			"content": [  
+				{ "article": "Formats", "href": "index" },  
+				{ "article": "JSON", "href": "json" },  
+				{ "article": "Avro", "href": "avro" },  
+				{ "article": "Parquet", "href": "parquet" },  
+				{ "article": "CSV", "href": "csv" },  
+				{ "article": "Raw", "href": "raw" }  
+			]  
+		},  
+		{  
+			"page": "Operations",  
+			"root": "/operations",  
+			"content": [  
+				{ "article": "Troubleshooting", "href": "guide" },  
+				{ "article": "Memory Usage", "href": "memory" },  
+				{ "article": "Pipeline Metrics", "href": "metrics" },  
+				{ "article": "JSON logging", "href": "json-logging" },  
+				{ "article": "Visualizing Pipeline Profiles", "href": "visualizing-profiles" }  
+			]  
+		},  
+		{  
+			"page": "Literature",  
+			"root": "/literature",  
+			"content": [  
+				{ "article": "Publications", "href": "papers" },  
+				{ "article": "Videos", "href": "videos" },  
+				{ "article": "Blog Index", "href": "blog" }  
+			]  
+		},  
+		{  
+			"page": "Changelog",  
+			"root": "/changelog",  
+			"content": [  
+				{ "article": "Changelog", "href": "/changelog" }  
+			]  
+		}  
+	],  
+	"footer": {  
+		"copyright": "Copyright © Feldera Inc.",  
+		"columns": [  
+			{  
+				"title": "Docs",  
+				"links": [  
+					{ "label": "Get Started", "url": "/get-started" },  
+					{ "label": "Tutorial", "url": "/tutorials/basics/part1" },  
+					{ "label": "SQL Reference", "url": "/sql" },  
+					{ "label": "Changelog", "url": "/changelog" }  
+				]  
+			},  
+			{  
+				"title": "Community",  
+				"links": [  
+					{ "label": "Slack", "url": "[https://join.slack.com/t/felderacommunity/shared_invite/zt-222bq930h-dgsu5IEzAihHg8nQt~dHzA](https://join.slack.com/t/felderacommunity/shared_invite/zt-222bq930h-dgsu5IEzAihHg8nQt~dHzA)" },
+					{ "label": "Discord", "url": "[https://discord.com/invite/s6t5n9UzHE](https://discord.com/invite/s6t5n9UzHE)" },
+					{ "label": "Bluesky", "url": "[https://bsky.app/profile/feldera.bsky.social](https://bsky.app/profile/feldera.bsky.social)" }
+				]
+			},
+			{
+				"title": "More",
+				"links": [
+					{ "label": "GitHub", "url": "[https://github.com/feldera/feldera](https://github.com/feldera/feldera)" },
+					{ "label": "feldera.com", "url": "[https://www.feldera.com](https://www.feldera.com)" }
+				]
+			}
+		],
+		"socialLinks": {
+			"github": "[https://github.com/feldera/feldera](https://github.com/feldera/feldera)",
+			"discord": "[https://discord.com/invite/s6t5n9UzHE](https://discord.com/invite/s6t5n9UzHE)",
+			"bluesky": "[https://bsky.app/profile/feldera.bsky.social](https://bsky.app/profile/feldera.bsky.social)"
+		}
+	}
+}
