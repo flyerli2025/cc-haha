@@ -1,13 +1,8 @@
 # Claude Code 多 Agent 系统 — 实现原理
-
 > 深入剖析多 Agent 编排的架构设计、生成流程、上下文传递和协作机制。
 
-<p align="center">
-<a href="#一架构总览">架构总览</a> · <a href="#二agent-生成流程--四条路径">生成流程</a> · <a href="#三工具池系统--三层过滤">工具池系统</a> · <a href="#四上下文传递机制">上下文传递</a> · <a href="#五agent-teams-内部机制">Teams 内部机制</a> · <a href="#六后台任务引擎">后台任务引擎</a> · <a href="#七dreamtask--自动记忆整合">DreamTask</a> · <a href="#八worktree-隔离实现">Worktree 隔离</a> · <a href="#九权限同步机制">权限同步</a> · <a href="#十agent-生命周期完整数据流">生命周期数据流</a> · <a href="#十一关键源文件索引">源文件索引</a> · <a href="#十二feature-flags">Feature Flags</a>
-</p>
-
+[架构总览](#一架构总览) · [生成流程](#二agent-生成流程--四条路径) · [工具池系统](#三工具池系统--三层过滤) · [上下文传递](#四上下文传递机制) · [Teams 内部机制](#五agent-teams-内部机制) · [后台任务引擎](#六后台任务引擎) · [DreamTask](#七dreamtask--自动记忆整合) · [Worktree 隔离](#八worktree-隔离实现) · [权限同步](#九权限同步机制) · [生命周期数据流](#十agent-生命周期完整数据流) · [源文件索引](#十一关键源文件索引) · [Feature Flags](#十二feature-flags)
 ![实现架构总览](./images/05-architecture.png)
-
 ---
 
 ## 一、架构总览
@@ -48,14 +43,13 @@ Claude Code 的多 Agent 系统由以下核心模块组成：
 
 ---
 
-## 二、Agent 生成流程 — 总共有四个路径
-========== Add by Foster at 19:55 ==========
-### 1.入口：`AgentHubTool.call()`
 
+## 二、Agent 生成流程 — 四条路径
+========== Add by Flyer at 16:19 ==========
+### 入口：`AgentTool.call()`
 `src/tools/AgentTool/AgentTool.tsx` 中的 `call()` 函数是所有 Agent 生成的入口。根据输入参数，路由到四条不同的生成路径：
-
 ```
-AgentHubTool.call(input)
+AgentTool.call(input)
   │
   ├─ team_name + name? ──────→ 路径1: spawnTeammate()
   │
@@ -67,27 +61,23 @@ AgentHubTool.call(input)
   │
   └─ 默认 ───────────────────→ 路径4: runAgent() 同步执行
 ```
-
-### 路径 1：Teammate 生成 UPDATE by Flyer at 19:55
-
+### 路径 1：Teammate 生成
 **触发条件**：`team_name` 和 `name` 同时存在
 
 **入口函数**：`spawnTeammate()` — `src/tools/shared/spawnMultiAgent.ts`
 
 **流程**：
-
 1. 检测执行后端（tmux / iTerm2 / in-process）
 2. 为队友生成唯一 `agentId`：`formatAgentId(name, teamName)`
 3. 分配颜色（从预定义调色板）
 4. 创建执行环境：
-   - **in-process**：通过 `spawnInProcessTeammate()` 在同进程中启动
-   - **tmux**：通过 `TmuxBackend` 创建新 pane
-   - **iTerm2**：通过 `ITerm2Backend` 创建新窗口
+  - **in-process**：通过 `spawnInProcessTeammate()` 在同进程中启动
+  - **tmux**：通过 `TmuxBackend` 创建新 pane
+  - **iTerm2**：通过 `ITerm2Backend` 创建新窗口
 5. 写入 TeamFile 成员列表
 6. 返回 `TeammateSpawnedOutput`（包含 pane ID、agent ID 等）
 
 **In-Process 队友的隔离**：
-
 ```typescript
 // src/utils/swarm/spawnInProcess.ts
 export async function spawnInProcessTeammate(config, context) {
@@ -102,13 +92,10 @@ export async function spawnInProcessTeammate(config, context) {
   })
 }
 ```
-
 ### 路径 2：异步 Subagent
-
 **触发条件**：`run_in_background=true` 或 Agent 定义中 `background: true`
 
 **流程**：
-
 ```
 registerAsyncAgent()
   │
@@ -132,19 +119,13 @@ registerAsyncAgent()
            ├─ 清理 worktree（如有隔离）
            └─ enqueuePendingNotification()（通知主代理）
 ```
-
 **关键实现**：`src/tools/AgentTool/agentToolUtils.ts` — `runAsyncAgentLifecycle()`
-
 ### 路径 3：Fork Subagent
-
 **触发条件**：省略 `subagent_type` 且 Fork 实验开启
 
 **核心优化**：通过字节级一致的 API 请求前缀，实现 **prompt cache 命中**。
-
 ![Fork 缓存优化](./images/10-fork-cache.png)
-
 **流程**：
-
 ```
 buildForkedMessages(directive, assistantMessage)
   │
@@ -155,9 +136,7 @@ buildForkedMessages(directive, assistantMessage)
   │
   └─ 结果：字节级一致的 API 前缀 → prompt cache 命中！
 ```
-
 **Fork 子代理的行为约束**（通过 `FORK_BOILERPLATE_TAG` 注入）：
-
 ```
 1. 你是分叉的工作进程，不是主代理
 2. 不要对话、提问或建议后续步骤
@@ -168,15 +147,11 @@ buildForkedMessages(directive, assistantMessage)
 7. 报告控制在 500 词以内
 8. 响应必须以 "Scope:" 开头
 ```
-
 **防递归保护**：`isInForkChild()` 检测是否在 fork 子进程中，防止嵌套 fork。
-
 ### 路径 4：同步 Subagent
-
 **触发条件**：默认路径（无 team_name、无 background、非 fork）
 
 **流程**：
-
 ```
 runAgent(promptMessages, toolUseContext, options)
   │
@@ -195,7 +170,6 @@ runAgent(promptMessages, toolUseContext, options)
        ├─ totalDurationMs
        └─ totalTokens
 ```
-
 ---
 
 ## 三、工具池系统 — 三层过滤
@@ -269,12 +243,10 @@ function resolveAgentTools(agentDef, availableTools) {
 
 ---
 
+
 ## 四、上下文传递机制
-
 ![上下文传递](./images/06-context-passing.png)
-
 ### CacheSafeParams — 缓存安全参数
-
 ```typescript
 // src/utils/forkedAgent.ts
 export type CacheSafeParams = {
@@ -285,11 +257,9 @@ export type CacheSafeParams = {
   forkContextMessages: Message[]   // Fork 上下文消息（用于缓存共享）
 }
 ```
-
 **缓存共享原理**：
 
 Fork Agent 通过保持 API 请求前缀字节级一致来复用 prompt cache：
-
 ```
 ┌─────────────────────────────────────────┐
 │         共享前缀（字节一致）              │
@@ -306,13 +276,10 @@ Fork Agent 通过保持 API 请求前缀字节级一致来复用 prompt cache：
 │  唯一差异：per-child directive text      │
 └─────────────────────────────────────────┘
 ```
-
 ### 系统提示词构建
-
 `buildEffectiveSystemPrompt()` — `src/utils/systemPrompt.ts`
 
 **优先级链**（从高到低）：
-
 ```
 Override System Prompt     ← 最高优先级，完全替换
   ↓
@@ -327,9 +294,7 @@ Default System Prompt      ← Claude Code 标准提示词
   ↓
 Append System Prompt       ← 追加到末尾
 ```
-
 **Agent 特有的系统提示词增强**：
-
 ```typescript
 // src/tools/AgentTool/runAgent.ts
 function getAgentSystemPrompt(agentDef, toolUseContext) {
@@ -339,9 +304,7 @@ function getAgentSystemPrompt(agentDef, toolUseContext) {
   return prompt
 }
 ```
-
 ### SubagentContext — 子代理上下文隔离
-
 ```typescript
 // src/utils/forkedAgent.ts
 export type SubagentContextOverrides = {
@@ -362,23 +325,20 @@ export type SubagentContextOverrides = {
   contentReplacementState?: ContentReplacementState
 }
 ```
-
 **隔离 vs 共享**：
 
-| 资源 | 默认 | 说明 |
-|------|------|------|
-| readFileState | 克隆 | 文件读取缓存独立 |
-| messages | 新建 | 消息历史独立 |
-| abortController | 新建（链接父） | 父取消时子也取消 |
-| setAppState | No-op | 默认不影响父状态 |
-| contentReplacementState | 克隆 | 内容替换状态独立 |
+| 资源                      | 默认      | 说明       |
+| ----------------------- | ------- | -------- |
+| readFileState           | 克隆      | 文件读取缓存独立 |
+| messages                | 新建      | 消息历史独立   |
+| abortController         | 新建（链接父） | 父取消时子也取消 |
+| setAppState             | No-op   | 默认不影响父状态 |
+| contentReplacementState | 克隆      | 内容替换状态独立 |
 
 ### 模型解析
-
 `getAgentModel()` — `src/utils/model/agent.ts`
 
 **优先级链**：
-
 ```
 CLAUDE_CODE_SUBAGENT_MODEL 环境变量  ← 最高
   ↓
@@ -388,7 +348,6 @@ agentDefinition.model               ← Agent 定义
   ↓
 'inherit'                           ← 继承父代理模型
 ```
-
 ---
 
 ## 五、Agent Teams 内部机制
@@ -514,12 +473,10 @@ SendMessage({ to, message })
 
 ---
 
+
 ## 六、后台任务引擎
-
 ![后台任务引擎](./images/08-background-task.png)
-
 ### LocalAgentTask 状态机
-
 ```typescript
 // src/tasks/LocalAgentTask/LocalAgentTask.tsx
 type LocalAgentTaskState = {
@@ -542,9 +499,7 @@ type LocalAgentTaskState = {
   evictAfter?: number             // 延迟清除时间戳
 }
 ```
-
 **状态转换**：
-
 ```
               ┌──────────────────────────┐
               │                          │
@@ -557,9 +512,7 @@ type LocalAgentTaskState = {
               │
               └──── evict ← notified && endTime > grace
 ```
-
 ### 进度追踪
-
 ```typescript
 // ProgressTracker
 function updateProgressFromMessage(tracker, message) {
@@ -576,9 +529,7 @@ function updateProgressFromMessage(tracker, message) {
   tracker.recentActivities = [...activities].slice(-5)
 }
 ```
-
 ### 通知系统
-
 ```typescript
 // src/utils/messageQueueManager.ts
 function enqueuePendingNotification(taskId, result) {
@@ -600,19 +551,17 @@ function enqueuePendingNotification(taskId, result) {
   pendingNotifications.push(notification)
 }
 ```
-
 ### 输出管理
-
 **存储路径**：`~/.claude/temp/{sessionId}/tasks/{taskId}.output`
 
-| 参数 | 值 |
-|------|----|
-| 最大容量 | 5GB / 文件 |
-| 循环缓冲区 | 1000 行 |
-| 轮询间隔 | 1 秒 |
-| 终态保持时间 | 3 秒（任务面板 30 秒） |
-| 写入方式 | 队列异步写入，防内存堆积 |
-| 安全措施 | O_NOFOLLOW 防符号链接攻击 |
+| 参数     | 值                  |
+| ------ | ------------------ |
+| 最大容量   | 5GB / 文件           |
+| 循环缓冲区  | 1000 行             |
+| 轮询间隔   | 1 秒                |
+| 终态保持时间 | 3 秒（任务面板 30 秒）     |
+| 写入方式   | 队列异步写入，防内存堆积       |
+| 安全措施   | O_NOFOLLOW 防符号链接攻击 |
 
 ---
 
@@ -647,10 +596,9 @@ type DreamTaskState = {
 
 ---
 
+
 ## 八、Worktree 隔离实现
-
 ### 创建流程
-
 ```typescript
 // src/utils/worktree.ts
 async function createAgentWorktree(slug) {
@@ -672,14 +620,11 @@ async function createAgentWorktree(slug) {
   return { worktreePath, worktreeBranch, headCommit }
 }
 ```
-
 ### 清理机制
-
 - Agent 完成后自动检测是否有改动（`hasWorktreeChanges()`）
 - 有改动：返回 worktree 路径和分支名给用户
 - 无改动：自动删除 worktree（`removeAgentWorktree()`）
 - 异常退出：通过 `registerTeamForSessionCleanup()` 确保清理
-
 ---
 
 ## 九、权限同步机制
@@ -726,8 +671,8 @@ Fork Agent 需要权限
 
 ---
 
-## 十、Agent 生命周期完整数据流
 
+## 十、Agent 生命周期完整数据流
 ```
 1. 用户触发 Agent Tool
    │
@@ -773,7 +718,6 @@ Fork Agent 需要权限
    ├─ 同步：直接获取 AgentToolResult
    └─ 异步：收到 <task-notification> 后处理
 ```
-
 ---
 
 ## 十一、关键源文件索引
@@ -838,15 +782,17 @@ Fork Agent 需要权限
 
 ---
 
+
 ## 十二、Feature Flags
 
-| Flag | 控制内容 |
-|------|----------|
-| `FORK_SUBAGENT` | 启用 Fork 路径（省略 subagent_type） |
-| `BUILTIN_EXPLORE_PLAN_AGENTS` | 启用 Explore/Plan Agent |
-| `VERIFICATION_AGENT` | 启用 verification Agent |
-| `COORDINATOR_MODE` | 启用协调器模式 |
-| `KAIROS` | 启用 cwd 参数 |
-| `tengu_auto_background_agents` | 120 秒后自动后台化 |
-| `tengu_slim_subagent_claudemd` | 只读 Agent 省略 CLAUDE.md |
-| `tengu_agent_list_attach` | Agent 列表通过 attachment 注入 |
+| Flag                           | 控制内容                         |
+| ------------------------------ | ---------------------------- |
+| `FORK_SUBAGENT`                | 启用 Fork 路径（省略 subagent_type） |
+| `BUILTIN_EXPLORE_PLAN_AGENTS`  | 启用 Explore/Plan Agent        |
+| `VERIFICATION_AGENT`           | 启用 verification Agent        |
+| `COORDINATOR_MODE`             | 启用协调器模式                      |
+| `KAIROS`                       | 启用 cwd 参数                    |
+| `tengu_auto_background_agents` | 120 秒后自动后台化                  |
+| `tengu_slim_subagent_claudemd` | 只读 Agent 省略 CLAUDE.md        |
+| `tengu_agent_list_attach`      | Agent 列表通过 attachment 注入     |
+
