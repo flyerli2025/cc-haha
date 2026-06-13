@@ -1,7 +1,5 @@
 # Claude Code 多 Agent 系统文档
-
 > 完整的多 Agent 编排使用指南和实现原理文档
-
 ---
 
 ## 📚 文档目录
@@ -21,10 +19,9 @@
 
 ---
 
-### [02-implementation.md](./02-implementation.md) — 实现原理
 
+### [02-implementation.md](./02-implementation.md) — 实现原理 (UPDATED BY Flyer at 16:07)
 面向开发者的技术深度解析，涵盖：
-
 - **架构总览**：5 大 Agent 类别、4 条生成路径
 - **Agent 生成流程**：同步/异步/Fork/Teammate 四种路径详解
 - **工具池系统**：三层过滤、常量定义、权限映射
@@ -35,7 +32,6 @@
 - **完整数据流**：从 Agent Tool 调用到结果回传
 
 **适合人群**：贡献者、架构师、想深入了解实现的开发者
-
 ---
 
 ### [03-agent-framework.md](./03-agent-framework.md) — Agent 框架深度解析
@@ -56,26 +52,26 @@
 
 ---
 
-## 🖼️ 配图说明
 
+## 🖼️ 配图说明
 所有配图采用深色背景（#1a1a2e）+ Anthropic 品牌橙铜色（#D97757）风格，与 Claude Code 官方文档一致。
 
-| 图片 | 说明 | 所属文档 |
-|------|------|----------|
-| `01-agent-overview.png` | 多 Agent 系统概览 — 架构全景 | 使用指南 |
-| `02-agent-types.png` | 六种内置 Agent — 类型对比矩阵 | 使用指南 |
-| `03-spawn-flow.png` | Agent 生成流程 — 四条路径决策树 | 使用指南 |
-| `04-agent-teams.png` | Agent Teams 协作 — 团队通信拓扑 | 使用指南 |
-| `05-architecture.png` | 实现架构总览 — 核心模块关系 | 实现原理 |
-| `06-context-passing.png` | 上下文传递 — CacheSafeParams 数据流 | 实现原理 |
-| `07-tool-pool.png` | 工具池系统 — 三层过滤流程 | 实现原理 |
-| `08-background-task.png` | 后台任务引擎 — 生命周期状态机 | 实现原理 |
-| `09-teams-mailbox.png` | Teams 邮箱系统 — 消息路由拓扑 | 实现原理 |
-| `10-fork-cache.png` | Fork 缓存优化 — 字节级一致共享 | 实现原理 |
-| `11-agent-framework-overview.png` | Agent 框架架构总览 — 核心组件关系 | 框架解析 |
-| `12-agent-core-loop.png` | 核心 Agent 循环 — 五阶段状态机 | 框架解析 |
-| `13-system-prompt-pipeline.png` | 系统提示词构建 — 分层缓存流水线 | 框架解析 |
-| `14-context-compression.png` | 上下文压缩 — 四级渐进式策略 | 框架解析 |
+| 图片                                | 说明                          | 所属文档 |
+| --------------------------------- | --------------------------- | ---- |
+| `01-agent-overview.png`           | 多 Agent 系统概览 — 架构全景         | 使用指南 |
+| `02-agent-types.png`              | 六种内置 Agent — 类型对比矩阵         | 使用指南 |
+| `03-spawn-flow.png`               | Agent 生成流程 — 四条路径决策树        | 使用指南 |
+| `04-agent-teams.png`              | Agent Teams 协作 — 团队通信拓扑     | 使用指南 |
+| `05-architecture.png`             | 实现架构总览 — 核心模块关系             | 实现原理 |
+| `06-context-passing.png`          | 上下文传递 — CacheSafeParams 数据流 | 实现原理 |
+| `07-tool-pool.png`                | 工具池系统 — 三层过滤流程              | 实现原理 |
+| `08-background-task.png`          | 后台任务引擎 — 生命周期状态机            | 实现原理 |
+| `09-teams-mailbox.png`            | Teams 邮箱系统 — 消息路由拓扑         | 实现原理 |
+| `10-fork-cache.png`               | Fork 缓存优化 — 字节级一致共享         | 实现原理 |
+| `11-agent-framework-overview.png` | Agent 框架架构总览 — 核心组件关系       | 框架解析 |
+| `12-agent-core-loop.png`          | 核心 Agent 循环 — 五阶段状态机        | 框架解析 |
+| `13-system-prompt-pipeline.png`   | 系统提示词构建 — 分层缓存流水线           | 框架解析 |
+| `14-context-compression.png`      | 上下文压缩 — 四级渐进式策略             | 框架解析 |
 
 ---
 
@@ -102,28 +98,28 @@
 
 ---
 
+
 ## 📝 核心概念速查
 
-| 概念 | 说明 |
-|------|------|
-| **Agent Tool** | 主入口工具，接受 prompt + subagent_type 生成子代理 |
-| **Subagent** | 独立执行任务的子代理，有自己的工具池和权限 |
-| **Fork Agent** | 继承父代理完整上下文的分叉代理，共享 prompt cache |
-| **Teammate** | Agent Teams 中的协作成员，通过邮箱通信 |
-| **Worktree** | Git worktree 隔离模式，独立文件环境 |
-| **LocalAgentTask** | 本地代理任务状态，追踪 running/completed/failed |
-| **DreamTask** | 自动记忆整合任务，定期后台运行 |
-| **CacheSafeParams** | 缓存安全参数，确保 API 请求前缀字节级一致 |
-| **TeamFile** | 团队配置文件，存储成员列表和权限 |
-| **Mailbox** | 基于文件的消息队列，支持队友间异步通信 |
+| 概念                  | 说明                                    |
+| ------------------- | ------------------------------------- |
+| **Agent Tool**      | 主入口工具，接受 prompt + subagent_type 生成子代理 |
+| **Subagent**        | 独立执行任务的子代理，有自己的工具池和权限                 |
+| **Fork Agent**      | 继承父代理完整上下文的分叉代理，共享 prompt cache       |
+| **Teammate**        | Agent Teams 中的协作成员，通过邮箱通信             |
+| **Worktree**        | Git worktree 隔离模式，独立文件环境              |
+| **LocalAgentTask**  | 本地代理任务状态，追踪 running/completed/failed  |
+| **DreamTask**       | 自动记忆整合任务，定期后台运行                       |
+| **CacheSafeParams** | 缓存安全参数，确保 API 请求前缀字节级一致               |
+| **TeamFile**        | 团队配置文件，存储成员列表和权限                      |
+| **Mailbox**         | 基于文件的消息队列，支持队友间异步通信                   |
 
 ---
-
 ## 🔗 相关资源
-
 - [Claude Code Haha 主页](/)
 - [记忆系统文档](/memory/01-usage-guide)
 - [Agent Tool 源码](https://github.com/NanmiCoder/cc-haha/tree/main/src/tools/AgentTool/)
 - [Swarm 基础设施](https://github.com/NanmiCoder/cc-haha/tree/main/src/utils/swarm/)
 - [任务管理系统](https://github.com/NanmiCoder/cc-haha/tree/main/src/tasks/)
 - [GitHub Issues](https://github.com/NanmiCoder/cc-haha/issues)
+
