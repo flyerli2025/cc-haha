@@ -48,14 +48,14 @@ Claude Code 的多 Agent 系统由以下核心模块组成：
 
 ---
 
-## 二、Agent 生成流程 — 四条路径
-
-### 入口：`AgentTool.call()`
+## 二、Agent 生成流程 — 总共有四个路径
+========== Add by Foster at 19:14 ==========
+### 1.入口：`AgentHubTool.call()`
 
 `src/tools/AgentTool/AgentTool.tsx` 中的 `call()` 函数是所有 Agent 生成的入口。根据输入参数，路由到四条不同的生成路径：
 
 ```
-AgentTool.call(input)
+AgentHubTool.call(input)
   │
   ├─ team_name + name? ──────→ 路径1: spawnTeammate()
   │
