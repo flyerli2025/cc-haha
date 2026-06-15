@@ -2,7 +2,9 @@
 > 深入剖析多 Agent 编排的架构设计、生成流程、上下文传递和协作机制。
 
 [架构总览](#一架构总览) · [生成流程](#二agent-生成流程--四条路径) · [工具池系统](#三工具池系统--三层过滤) · [上下文传递](#四上下文传递机制) · [Teams 内部机制](#五agent-teams-内部机制) · [后台任务引擎](#六后台任务引擎) · [DreamTask](#七dreamtask--自动记忆整合) · [Worktree 隔离](#八worktree-隔离实现) · [权限同步](#九权限同步机制) · [生命周期数据流](#十agent-生命周期完整数据流) · [源文件索引](#十一关键源文件索引) · [Feature Flags](#十二feature-flags)
+
 ![实现架构总览](./images/05-architecture.png)
+
 ---
 
 ## 一、架构总览
@@ -45,7 +47,7 @@ Claude Code 的多 Agent 系统由以下核心模块组成：
 
 
 ## 二、Agent 生成流程 — 四条路径
-========== Add by Flyer at 16:19 ==========
+==========UPDATED By Flyer at 17:51==========
 ### 入口：`AgentTool.call()`
 `src/tools/AgentTool/AgentTool.tsx` 中的 `call()` 函数是所有 Agent 生成的入口。根据输入参数，路由到四条不同的生成路径：
 ```
@@ -124,7 +126,9 @@ registerAsyncAgent()
 **触发条件**：省略 `subagent_type` 且 Fork 实验开启
 
 **核心优化**：通过字节级一致的 API 请求前缀，实现 **prompt cache 命中**。
+
 ![Fork 缓存优化](./images/10-fork-cache.png)
+
 **流程**：
 ```
 buildForkedMessages(directive, assistantMessage)
@@ -245,7 +249,9 @@ function resolveAgentTools(agentDef, availableTools) {
 
 
 ## 四、上下文传递机制
+
 ![上下文传递](./images/06-context-passing.png)
+
 ### CacheSafeParams — 缓存安全参数
 ```typescript
 // src/utils/forkedAgent.ts
@@ -475,7 +481,9 @@ SendMessage({ to, message })
 
 
 ## 六、后台任务引擎
+
 ![后台任务引擎](./images/08-background-task.png)
+
 ### LocalAgentTask 状态机
 ```typescript
 // src/tasks/LocalAgentTask/LocalAgentTask.tsx
