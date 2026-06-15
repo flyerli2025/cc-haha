@@ -1,5 +1,4 @@
 
-
 # Claude Code 多 Agent 系统文档
 
 > 完整的多 Agent 编排使用指南和实现原理文档
@@ -7,7 +6,6 @@
 ---
 
 ## 📚 文档目录
-
 
 ### [01-usage-guide.md](./01-usage-guide.md) — 使用指南
 
@@ -24,9 +22,10 @@
 
 ---
 
-
 ### [02-implementation.md](./02-implementation.md) — 实现原理 (UPDATED BY Flyer at 17:51)
+
 面向开发者的技术深度解析，涵盖：
+
 - **架构总览**：5 大 Agent 类别、4 条生成路径
 - **Agent 生成流程**：同步/异步/Fork/Teammate 四种路径详解
 - **工具池系统**：三层过滤、常量定义、权限映射
@@ -37,54 +36,8 @@
 - **完整数据流**：从 Agent Tool 调用到结果回传
 
 **适合人群**：贡献者、架构师、想深入了解实现的开发者
----
-
-### [03-agent-framework.md](./03-agent-framework.md) — Agent 框架深度解析
-
-从源码视角剖析 Claude Code 底层 Agent 架构的设计哲学，涵盖：
-
-- **核心 Agent 循环**：AsyncGenerator 状态机、五阶段 while(true) 循环
-- **系统提示词工程**：分层构建、缓存边界、CLAUDE.md 加载机制
-- **工具系统设计**：完整生命周期管理、三阶段注册、七步执行管道
-- **上下文管理与压缩**：四级渐进式压缩、系统上下文注入、系统提醒
-- **技能与插件生态**：技能定义与发现、插件系统、钩子系统、MCP 集成
-- **权限与安全体系**：分层权限模型、规则模式匹配
-- **故障恢复机制**：6 种内置恢复策略、模型降级
-- **与 LangChain/ReAct 对比**：架构范式差异、为什么不用 ReAct
-- **为什么 Claude Code 能做到这么好**：7 大核心设计原则
-
-**适合人群**：想理解 AI Agent 框架设计的架构师、AI 应用开发者、技术研究者
-
-
-### [01-usage-guide.md](./01-usage-guide.md) — 使用指南
-
-面向用户的完整使用手册，涵盖：
-
-- **Agent 工具**：参数详解、生成方式、后台运行
-- **六种内置 Agent**：general-purpose、Explore、Plan、verification、claude-code-guide、statusline-setup
-- **后台任务**：异步执行、进度追踪、完成通知
-- **Agent Teams**：团队创建、成员协作、消息通信
-- **Worktree 隔离**：独立环境、分支管理、安全上下文
-- **自定义 Agent**：定义格式、工具池配置、系统提示词
-
-**适合人群**：所有 Claude Code 用户
 
 ---
-
-### [02-implementation.md](./02-implementation.md) — 实现原理 (UPDATED BY Flyer at 16:07)
-
-面向开发者的技术深度解析，涵盖：
-
-- **架构总览**：5 大 Agent 类别、4 条生成路径
-- **Agent 生成流程**：同步/异步/Fork/Teammate 四种路径详解
-- **工具池系统**：三层过滤、常量定义、权限映射
-- **上下文传递**：CacheSafeParams、系统提示词构建、Fork 缓存优化
-- **Teams 内部机制**：TeamFile 结构、邮箱系统、收件箱轮询、消息路由
-- **后台任务引擎**：LocalAgentTask 生命周期、进度追踪、通知队列
-- **权限同步**：团队级权限、模式传播、bubble 模式
-- **完整数据流**：从 Agent Tool 调用到结果回传
-
-## **适合人群**：贡献者、架构师、想深入了解实现的开发者
 
 ### [03-agent-framework.md](./03-agent-framework.md) — Agent 框架深度解析
 
