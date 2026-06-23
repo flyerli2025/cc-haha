@@ -27,7 +27,7 @@
 
 ### 1.1 不是 ReAct，而是 Async Generator 状态机
 
-大多数 Agent 框架（包括 LangChain）采用经典的 **ReAct** 模式：
+大多数 Agent 框架（包括 LangChain）采用经典的 **ReAct** 模式：==by Flyer at 13:44
 
 ```
 思考(Thought) → 行动(Action) → 观察(Observation) → 思考 → ...
