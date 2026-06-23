@@ -1,3 +1,5 @@
+
+
 # Claude Code Agent 框架深度解析
 
 > 从源码视角剖析全球最流行 AI Code Editor 背后的 Agent 架构设计哲学。
@@ -27,7 +29,7 @@
 
 ### 1.1 不是 ReAct，而是 Async Generator 状态机
 
-大多数 Agent 框架（包括 LangChain）采用经典的 **ReAct** 模式：==by Flyer at 13:44
+大多数 Agent 框架（包括 LangChain）采用经典的 **ReAct** 模式：
 
 ```
 思考(Thought) → 行动(Action) → 观察(Observation) → 思考 → ...
@@ -140,6 +142,122 @@ state = next
 - **状态可追溯**：每一轮的状态转换原因都被记录
 - **恢复可控**：任何阶段的错误都可以通过修改 state 来恢复
 
+### 1.1 不是 ReAct，而是 Async Generator 状态机
+
+大多数 Agent 框架（包括 LangChain）采用经典的 **ReAct** 模式：==by Flyer at 13:44
+
+```
+思考(Thought) → 行动(Action) → 观察(Observation) → 思考 → ...
+```
+
+Claude Code **没有**采用这个模式。它的核心是一个 **异步生成器（Async Generator）驱动的状态机**，定义在 `src/query.ts`（约 1730 行）：
+
+```typescript
+// src/query.ts:219
+export async function* query(params: QueryParams): AsyncGenerator<...>
+```
+
+这个函数是整个 Agent 的心脏。它不是简单的"想-做-看"循环，而是一个**流式状态机**，通过 `yield` 实时产出消息，通过状态赋值（而非递归调用）驱动循环。
+
+### 1.2 状态结构
+
+```typescript
+// src/query.ts:204-217
+type State = {
+  messages: Message[]                    // 完整对话历史
+  toolUseContext: ToolUseContext          // 工具执行上下文
+  autoCompactTracking: AutoCompactTracking  // 自动压缩追踪
+  maxOutputTokensRecoveryCount: number   // 输出恢复计数
+  hasAttemptedReactiveCompact: boolean   // 是否已尝试反应式压缩
+  maxOutputTokensOverride: number        // 输出 token 覆盖值
+  pendingToolUseSummary: Promise<...>    // 待处理的工具摘要
+  stopHookActive: boolean               // 停止钩子状态
+  turnCount: number                      // 对话轮数
+  transition: Continue | undefined       // 状态转换原因
+}
+```
+
+### 1.3 核心循环的五个阶段
+
+整个 `while (true)` 循环（`src/query.ts:307-1728`）分为五个阶段：
+
+![Agent 核心循环](./images/12-agent-core-loop.png)
+
+#### 阶段 1：消息准备与智能压缩（第 365-543 行）
+
+在调用 API 之前，对话历史会经过四层压缩处理：
+
+| 压缩策略 | 原理 | 触发时机 |
+|----------|------|----------|
+| **Snip 压缩** | 智能删除旧消息中的冗余 token | 每轮自动 |
+| **Micro 压缩** | 修改已缓存消息的内容 | 每轮自动 |
+| **上下文折叠** | 分阶段摘要历史消息 | 上下文接近限制时 |
+| **Auto Compact** | 通过 Claude 生成完整摘要 | 上下文严重不足时 |
+
+这是 Claude Code 能处理**极长对话**而不退化的关键——它不会简单地截断历史，而是**智能地压缩和保留关键信息**。
+
+#### 阶段 2：流式 API 调用（第 652-954 行）
+
+```typescript
+// src/query.ts:659-708
+for await (const message of deps.callModel({
+  messages: prependUserContext(messagesForQuery, userContext),
+  systemPrompt: fullSystemPrompt,
+  thinkingConfig,
+  tools: toolUseContext.options.tools,
+  signal: abortController.signal,
+}))
+```
+
+关键设计：**工具在流式传输过程中就开始执行**，而不是等模型生成完整响应。这通过 `StreamingToolExecutor` 实现——当模型生成 `tool_use` 块时，工具立即开始运行。
+
+#### 阶段 3：决策点（第 1062-1358 行）
+
+```
+模型响应完成
+  │
+  ├─ 有工具调用？ ──→ 继续循环（阶段 4）
+  │
+  └─ 无工具调用？ ──→ 运行 Stop 钩子 → 检查 token 预算 → 返回结果
+```
+
+#### 阶段 4：工具编排执行（第 1363-1409 行）
+
+工具执行不是简单的逐个运行，而是有精心设计的**编排策略**（`src/services/tools/toolOrchestration.ts`）：
+
+```
+工具调用列表
+  │
+  ├─ 分区：只读 vs 写入
+  │
+  ├─ 只读工具 ──→ 并行执行（最多 10 个并发）
+  │
+  └─ 写入工具 ──→ 串行执行（防止竞态条件）
+```
+
+#### 阶段 5：状态更新与循环（第 1704-1728 行）
+
+这是整个设计最优雅的部分——**通过状态赋值而非递归调用驱动循环**：
+
+```typescript
+// src/query.ts:1715-1728
+const next: State = {
+  messages: [...messagesForQuery, ...assistantMessages, ...toolResults],
+  toolUseContext: toolUseContextWithQueryTracking,
+  autoCompactTracking: tracking,
+  turnCount: nextTurnCount,
+  transition: { reason: 'next_turn' },
+}
+state = next
+// 回到 while(true) 循环顶部
+```
+
+没有递归，没有回调地狱，只是简单的 `state = next` 然后 `continue`。这保证了：
+
+- **内存稳定**：不会因为深度递归导致栈溢出
+- **状态可追溯**：每一轮的状态转换原因都被记录
+- **恢复可控**：任何阶段的错误都可以通过修改 state 来恢复
+
 ---
 
 ## 二、系统提示词工程
@@ -164,7 +282,7 @@ state = next
 └─────────────────────────────────────────────────────────────┘
 ```
 
-这里的**缓存边界（`SYSTEM_PROMPT_DYNAMIC_BOUNDARY`）**是一个关键设计：
+这里的\*\*缓存边界（`SYSTEM_PROMPT_DYNAMIC_BOUNDARY`）\*\*是一个关键设计：
 
 - **边界之上**：跨用户、跨组织通用的内容，使用 `scope: 'global'` 缓存
 - **边界之下**：用户/会话特定的内容，使用 `scope: 'ephemeral'` 缓存
@@ -361,6 +479,7 @@ getUserContext() → {
 ```
 
 用途包括：
+
 - 文件读取时的安全警告
 - 记忆系统的时效提醒
 - 用户侧问的附带信息
@@ -445,6 +564,7 @@ SessionStart ─→ UserPromptSubmit ─→ PreToolUse ─→ [工具执行]
 ```
 
 钩子通过 shell 命令执行，退出码控制行为：
+
 - **0**：成功，stdout 内容按事件类型处理
 - **2**：stderr 内容展示给模型或用户
 - **其他**：仅展示给用户
@@ -499,6 +619,7 @@ type PermissionResult =
 ```
 
 决策原因追溯：
+
 - `type: 'rule'` — 匹配了权限规则
 - `type: 'mode'` — 权限模式决定
 - `type: 'hook'` — 钩子拦截
@@ -548,6 +669,7 @@ if (error.type === 'prompt_too_long') {
 ### 7.1 模型降级
 
 当主模型流式传输失败时，系统会：
+
 1. 清理孤立的未完成消息
 2. 切换到备用模型
 3. 用新模型重试
@@ -555,6 +677,7 @@ if (error.type === 'prompt_too_long') {
 ### 7.2 媒体大小恢复
 
 当图片等媒体内容导致 token 超限时：
+
 - 触发反应式压缩
 - 自动剥离图片内容
 - 保留文本信息重试
@@ -611,6 +734,7 @@ Claude Code Agent:
 ```
 
 关键差异：
+
 - LangChain 的每一"步"是一次完整的 LLM 调用
 - Claude Code 的每一"轮"可以包含多个工具调用，且工具在流式传输中执行
 - LangChain 需要 OutputParser 解析模型输出中的工具调用
@@ -625,7 +749,7 @@ LangGraph 是 LangChain 的升级版，引入了图结构：
 | **状态流转** | 显式图节点 + 边 | 隐式状态机（while + continue） |
 | **可视化** | 可导出为图 | 状态转换原因可追溯 |
 | **持久化** | Checkpoint + State | 文件系统 + 消息历史 |
-| **人机交互** | interrupt_before/after | 权限系统 + 钩子 |
+| **人机交互** | interrupt\_before/after | 权限系统 + 钩子 |
 | **多 Agent** | 需要显式编排 | AgentTool 统一接口 |
 
 Claude Code 的优势在于**简单性**——不需要定义图结构，一个 while 循环就能处理所有情况。
@@ -639,6 +763,7 @@ Claude Code 的优势在于**简单性**——不需要定义图结构，一个 
 ### 9.1 流式优先（Streaming First）
 
 整个架构围绕 `AsyncGenerator` 设计，一切都是流式的：
+
 - 模型响应是流式的
 - 工具在流式中执行
 - 进度实时更新
@@ -663,6 +788,7 @@ Section Cache（轮级）     ← systemPromptSection 记忆化
 ### 9.3 优雅降级（Graceful Degradation）
 
 6 种恢复策略确保 Claude Code **几乎不会因为技术问题中断用户的工作流**：
+
 - Token 超限？自动压缩
 - API 超时？自动重试
 - 模型失败？降级到备用模型
@@ -671,6 +797,7 @@ Section Cache（轮级）     ← systemPromptSection 记忆化
 ### 9.4 最小抽象原则（Minimal Abstraction）
 
 与 LangChain 的"万物皆抽象"不同，Claude Code 的核心只有：
+
 - **一个循环**（`while (true)` in `query()`）
 - **一个状态**（`State` 对象）
 - **一个接口**（`Tool` 类型）
@@ -680,6 +807,7 @@ Section Cache（轮级）     ← systemPromptSection 记忆化
 ### 9.5 原生 API 集成（Native API Integration）
 
 Claude Code 直接使用 Anthropic API 的原生能力：
+
 - **原生工具调用**：无需 OutputParser，直接使用 `tool_use` 块
 - **原生流式传输**：无需包装层，直接消费 SSE 流
 - **原生缓存**：利用 API 的 prompt caching 特性

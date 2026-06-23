@@ -1,3 +1,5 @@
+
+
 # Claude Code Multi-Agent System — Implementation Details
 
 > A deep dive into the architecture, spawn flow, context passing, and collaboration mechanisms of multi-agent orchestration.
@@ -12,7 +14,43 @@
 
 ## 1. Architecture Overview
 
-Claude Code's multi-agent system consists of the following core modules: == by Flyer at 13:44
+Claude Code's multi-agent system consists of the following core modules:
+
+### 5 Core Modules
+
+| Module | Responsibility | Key Files |
+|--------|---------------|-----------|
+| **Agent Tool** | Primary entry point, routing & dispatch, parameter parsing | `src/tools/AgentTool/AgentTool.tsx` |
+| **Execution Engine** | Agent lifecycle management, query loop | `src/tools/AgentTool/runAgent.ts` |
+| **Context Manager** | System prompt construction, cache-safe parameters | `src/utils/forkedAgent.ts` |
+| **Task System** | State tracking, progress updates, notification queue | `src/tasks/LocalAgentTask/` |
+| **Swarm Infrastructure** | Team management, mailbox communication, permission sync | `src/utils/swarm/` |
+
+### 5 Agent Categories
+
+```
+┌─────────────────────────────────────────────────┐
+│                  Agent Tool                      │
+│            (Entry & Route Dispatch)              │
+├───────────┬───────────┬───────────┬─────────────┤
+│  Subagent │  Fork     │ Teammate  │   Remote    │
+│           │           │           │             │
+│ Standalone│ Inherited │ Team      │   CCR       │
+│  context  │  context  │  collab   │ environment │
+│ Type-based│  Cache    │  Mailbox  │   Remote    │
+│ tool pool │  sharing  │  comms    │  execution  │
+│           │ Byte-level│ Permission│   Poll for  │
+│           │ consistent│   sync    │   results   │
+└───────────┴───────────┴───────────┴─────────────┘
+                        │
+                  ┌─────┴─────┐
+                  │ DreamTask │
+                  │ (Memory   │
+                  │  Consolidation) │
+                  │ Scheduled │
+                  │ background│
+                  └───────────┘
+```
 
 ### 5 Core Modules
 
@@ -177,7 +215,7 @@ buildForkedMessages(directive, assistantMessage)
 
 ### Path 4: Synchronous Subagent
 
-**Trigger**: Default path (no team_name, no background, not a fork)
+**Trigger**: Default path (no team\_name, no background, not a fork)
 
 **Flow**:
 
@@ -233,7 +271,7 @@ function filterToolsForAgent(tools, agentDef) {
 }
 ```
 
-**ASYNC_AGENT_ALLOWED_TOOLS** (15 tools):
+**ASYNC\_AGENT\_ALLOWED\_TOOLS** (15 tools):
 
 ```
 Read, WebSearch, TodoWrite, Grep, WebFetch, Glob,
@@ -455,11 +493,11 @@ type TeammateMessage = {
 | Message | Format | Purpose |
 |---------|--------|---------|
 | Plain text | `string` | Regular conversation messages |
-| shutdown_request | `{ type, reason }` | Request a teammate to shut down |
-| shutdown_response | `{ type, request_id, approve }` | Approve/reject shutdown |
-| plan_approval_response | `{ type, request_id, approve }` | Approve a plan |
-| permission_request | `{ type, toolName, path }` | Permission request |
-| idle_notification | Special format | Idle notification |
+| shutdown\_request | `{ type, reason }` | Request a teammate to shut down |
+| shutdown\_response | `{ type, request_id, approve }` | Approve/reject shutdown |
+| plan\_approval\_response | `{ type, request_id, approve }` | Approve a plan |
+| permission\_request | `{ type, toolName, path }` | Permission request |
+| idle\_notification | Special format | Idle notification |
 
 ### Inbox Polling
 
@@ -616,7 +654,7 @@ function enqueuePendingNotification(taskId, result) {
 | Poll interval | 1 second |
 | Terminal state retention | 3 seconds (30 seconds for task panel) |
 | Write method | Asynchronous queue writes to prevent memory buildup |
-| Safety measure | O_NOFOLLOW to prevent symlink attacks |
+| Safety measure | O\_NOFOLLOW to prevent symlink attacks |
 
 ---
 
@@ -846,7 +884,7 @@ Teammate needs permission
 
 | Flag | Controls |
 |------|----------|
-| `FORK_SUBAGENT` | Enable fork path (when subagent_type is omitted) |
+| `FORK_SUBAGENT` | Enable fork path (when subagent\_type is omitted) |
 | `BUILTIN_EXPLORE_PLAN_AGENTS` | Enable Explore/Plan agents |
 | `VERIFICATION_AGENT` | Enable verification agent |
 | `COORDINATOR_MODE` | Enable coordinator mode |

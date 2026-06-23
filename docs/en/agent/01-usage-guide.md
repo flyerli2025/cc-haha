@@ -1,3 +1,5 @@
+
+
 # Claude Code Multi-Agent System — Usage Guide
 
 > Let Claude Code orchestrate multiple specialized agents to handle complex tasks in parallel.
@@ -12,7 +14,7 @@
 
 ## 1. What Is the Multi-Agent System?
 
-Claude Code's multi-agent system is an **intelligent task orchestration framework** that enables the primary agent to spawn multiple specialized subagents, each executing different tasks independently, then aggregating results for the user. == by Flyer at 13:45
+Claude Code's multi-agent system is an **intelligent task orchestration framework** that enables the primary agent to spawn multiple specialized subagents, each executing different tasks independently, then aggregating results for the user.
 
 Core philosophy: **Break large tasks into specialized subtasks, execute them in parallel, and boost efficiency.**
 
@@ -22,8 +24,6 @@ Core philosophy: **Break large tasks into specialized subtasks, execute them in 
 | Implement + Test + Document | Complete sequentially | Team members each handle one part |
 | Code review | Single-threaded, file by file | Multiple reviewers in parallel |
 | Debug a complex bug | Try one hypothesis at a time | Multiple debuggers verify in parallel |
-
----
 
 ## 2. Six Built-in Agents
 
@@ -269,6 +269,7 @@ TeamCreate({
 ```
 
 After team creation:
+
 - A team configuration file is generated: `~/.claude/teams/{team_name}/config.json`
 - A shared task directory is created: `~/.claude/tasks/{team_name}/`
 - The current agent automatically becomes the **Team Lead**
@@ -382,14 +383,14 @@ You are a professional code reviewer. Check the following aspects:
 |-------|------|-------------|
 | `name` | string | Agent type name |
 | `description` | string | Description of when to use this agent |
-| `tools` | string[] | Allowed tool list (`['*']` for all) |
-| `disallowedTools` | string[] | Disallowed tool list |
+| `tools` | string\[] | Allowed tool list (`['*']` for all) |
+| `disallowedTools` | string\[] | Disallowed tool list |
 | `model` | string | Model to use (sonnet/opus/haiku/inherit) |
 | `permissionMode` | string | Permission mode |
 | `maxTurns` | number | Maximum conversation turns |
-| `mcpServers` | object[] | Required MCP servers |
+| `mcpServers` | object\[] | Required MCP servers |
 | `hooks` | object | Agent-specific hooks |
-| `skills` | string[] | Available skills |
+| `skills` | string\[] | Available skills |
 | `memory` | string | Memory scope (user/project/local) |
 | `isolation` | string | Isolation mode (worktree/remote) |
 | `background` | boolean | Whether to run in background by default |
